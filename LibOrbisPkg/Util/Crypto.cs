@@ -7,7 +7,7 @@ using System.Text;
 
 namespace LibOrbisPkg.Util
 {
-  class Crypto
+  public static class Crypto
   {
     /// <summary>
     /// From FPKG code:
@@ -16,15 +16,12 @@ namespace LibOrbisPkg.Util
     public static byte[] PfsGenCryptoKey(byte[] ekpfs, byte[] seed, uint index)
     {
       byte[] d = new byte[4 + seed.Length];
-      byte[] result = new byte[16];
       Array.Copy(BitConverter.GetBytes(index), d, 4);
       Array.Copy(seed, 0, d, 4, seed.Length);
-      using (var hmac = new HMACSHA256())
+      using (var hmac = new HMACSHA256(ekpfs))
       {
-        hmac.Key = ekpfs;
-        hmac.TransformBlock(d, 0, d.Length, result, 0);
+        return hmac.ComputeHash(d);
       }
-      return result;
     }
 
     /// <summary>
@@ -125,7 +122,14 @@ namespace LibOrbisPkg.Util
       return Sha256(data);
     }
 
-
-
+    public static string AsHexCompact(this byte[] k)
+    {
+      StringBuilder sb = new StringBuilder(k.Length * 2);
+      foreach(var b in k)
+      {
+        sb.AppendFormat("{0:X2}", b);
+      }
+      return sb.ToString();
+    }
   }
 }
